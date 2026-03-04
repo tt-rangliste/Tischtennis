@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏓 Tischtennis ELO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TT Rangliste" />
+</head>
+<body>
+  <div class="noise"></div>
+
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="ball">🏓</span>
+        <div>
+          <h1>TISCHTENNIS</h1>
+          <span class="subtitle">ELO RANGLISTE</span>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="hstat"><span id="totalPlayers">0</span><label>Spieler</label></div>
+        <div class="hstat"><span id="totalGames">0</span><label>Spiele</label></div>
+      </div>
+      <button class="btn-settings" id="btnSettings" title="Einstellungen">⚙️</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="rangliste">Rangliste</button>
+    <button class="tab" data-tab="spiel">Spiel</button>
+    <button class="tab" data-tab="spieler">Spieler</button>
+    <button class="tab" data-tab="verlauf">Verlauf</button>
+    <button class="tab" data-tab="vorschau">Vorschau</button>
+    <button class="tab" data-tab="h2h">H2H</button>
+    <button class="tab" data-tab="formkurve">Formkurve</button>
+    <button class="tab" data-tab="turnier">🏆 Turnier</button>
+  </nav>
+
+  <main>
+
+    <!-- ── RANGLISTE ── -->
+    <section class="tab-content active" id="tab-rangliste">
+      <div class="section-title"><span class="sect-icon">🏆</span> AKTUELLE RANGLISTE</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Name</th><th>ELO</th>
+            <th>S</th><th>N</th><th>Win%</th><th>+/−</th><th>Ø Pkt</th><th title="Turnierpunkte">🏅</th>
+          </tr></thead>
+          <tbody id="rankBody"></tbody>
+        </table>
+      </div>
+      <p class="empty-msg" id="rankEmpty">Noch keine Spieler vorhanden.</p>
+    </section>
+
+    <!-- ── SPIEL ── -->
+    <section class="tab-content" id="tab-spiel">
+      <div class="section-title"><span class="sect-icon">⚡</span> SPIEL EINTRAGEN</div>
+      <div class="match-form">
+        <div class="player-select-wrap">
+          <div class="player-card" id="playerACard">
+            <div class="card-label" style="color:var(--accent)">🏓 SPIELER A</div>
+            <select id="playerASelect" class="player-select"><option value="">— Spieler wählen —</option></select>
+            <div class="player-elo" id="playerAElo">— ELO</div>
+            <input type="number" id="scoreA" class="score-input" placeholder="0" min="0" max="999"/>
+          </div>
+          <div class="vs-badge">VS</div>
+          <div class="player-card" id="playerBCard">
+            <div class="card-label" style="color:var(--text2)">🏓 SPIELER B</div>
+            <select id="playerBSelect" class="player-select"><option value="">— Spieler wählen —</option></select>
+            <div class="player-elo" id="playerBElo">— ELO</div>
+            <input type="number" id="scoreB" class="score-input" placeholder="0" min="0" max="999"/>
+          </div>
+        </div>
+        <div class="match-preview" id="matchPreview">Wähle beide Spieler und trage das Ergebnis ein …</div>
+
+        <!-- Beide Spieler müssen ihren Code eingeben -->
+        <div class="pin-confirm-wrap" id="pinConfirmWrap" style="display:none">
+          <div class="pin-both-row">
+            <div class="pin-field-group">
+              <label class="pin-field-label" id="pinLabelA">Code Spieler A</label>
+              <input type="password" id="matchPinA" class="pin-input" placeholder="Schulpasswort …" maxlength="30" autocomplete="new-password"/>
+            </div>
+            <div class="pin-field-group">
+              <label class="pin-field-label" id="pinLabelB">Code Spieler B</label>
+              <input type="password" id="matchPinB" class="pin-input" placeholder="Schulpasswort …" maxlength="30" autocomplete="new-password"/>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="submitMatch">SPIEL EINTRAGEN</button>
+      </div>
+      <div class="toast" id="matchToast"></div>
+    </section>
+
+    <!-- ── SPIELER ── -->
+    <section class="tab-content" id="tab-spieler">
+      <div class="section-title"><span class="sect-icon">👤</span> SPIELER VERWALTEN</div>
+      <div class="add-player-form">
+        <div class="add-player-fields">
+          <input type="text" id="newPlayerName" placeholder="Name eingeben …" maxlength="30"/>
+          <input type="password" id="newPlayerPw" placeholder="Schulpasswort verwenden …" maxlength="30" autocomplete="new-password"/>
+        </div>
+        <button class="btn-primary" id="addPlayerBtn">HINZUFÜGEN</button>
+      </div>
+      <p class="add-player-hint">🔒 Das Passwort kann nur vom Admin zurückgesetzt werden (über das Spielerprofil).</p>
+      <div class="toast" id="playerToast"></div>
+      <div class="player-list" id="playerList"></div>
+      <div class="overlay" id="detailOverlay">
+        <div class="detail-card">
+          <button class="close-btn" id="closeDetail">✕</button>
+          <div id="detailContent"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── VERLAUF ── -->
+    <section class="tab-content" id="tab-verlauf">
+      <div class="section-title"><span class="sect-icon">📋</span> SPIELVERLAUF</div>
+      <div class="game-log" id="gameLog"></div>
+      <p class="empty-msg" id="logEmpty">Noch keine Spiele eingetragen.</p>
+    </section>
+
+    <!-- ── VORSCHAU ── -->
+    <section class="tab-content" id="tab-vorschau">
+      <div class="section-title"><span class="sect-icon">🔮</span> MATCH VORSCHAU</div>
+      <div class="preview-form">
+        <select id="previewA" class="player-select"><option value="">— Spieler A —</option></select>
+        <div class="vs-badge small">VS</div>
+        <select id="previewB" class="player-select"><option value="">— Spieler B —</option></select>
+      </div>
+      <div class="prediction" id="prediction"></div>
+    </section>
+
+    <!-- ── HEAD-TO-HEAD ── -->
+    <section class="tab-content" id="tab-h2h">
+      <div class="section-title"><span class="sect-icon">⚔️</span> HEAD-TO-HEAD</div>
+      <div class="preview-form">
+        <select id="h2hA" class="player-select"><option value="">— Spieler A —</option></select>
+        <div class="vs-badge small">VS</div>
+        <select id="h2hB" class="player-select"><option value="">— Spieler B —</option></select>
+      </div>
+      <div id="h2hResult"></div>
+    </section>
+
+    <!-- ── FORMKURVE ── -->
+    <section class="tab-content" id="tab-formkurve">
+      <div class="section-title"><span class="sect-icon">📈</span> FORMKURVE</div>
+      <div class="formkurve-header">
+        <div class="formkurve-hint">Spieler antippen um ihre Kurve anzuzeigen</div>
+        <button class="btn-small" onclick="resetChartSelection()">↺ Zurücksetzen</button>
+      </div>
+      <div class="chart-selector" id="chartSelector"></div>
+      <div class="chart-wrap" style="display:none"><canvas id="formChart"></canvas></div>
+      <p class="empty-msg" id="chartEmpty">Noch keine Spiele vorhanden.</p>
+    </section>
+
+    <!-- ── TURNIER ── -->
+    <section class="tab-content" id="tab-turnier">
+
+      <div id="viewListe">
+        <div class="turnier-liste-header">
+          <div class="section-title" style="margin:0"><span class="sect-icon">🏆</span> TURNIERE</div>
+          <button class="btn-small" id="btnNeuesTurnier">+ NEUES TURNIER</button>
+        </div>
+        <div id="turnierCards"></div>
+        <p class="empty-msg" id="turnierLeer">Noch keine Turniere – erstelle das erste!</p>
+      </div>
+
+      <div id="viewErstellen" style="display:none">
+        <div class="view-header">
+          <button class="btn-back" id="btnBackListe1">← Zurück</button>
+          <div class="section-title" style="margin:0"><span class="sect-icon">➕</span> NEUES TURNIER</div>
+        </div>
+        <div class="turnier-create-form">
+          <input type="text" id="turnierName" placeholder="Turniername …" class="turnier-name-input" maxlength="40"/>
+          <div class="turnier-options">
+            <label class="option-check" id="optWertungWrap" style="opacity:.4;pointer-events:none">
+              <input type="checkbox" id="optWertung"/>
+              <span class="checkmark"></span>
+              <div>
+                <strong>Mit Wertung</strong>
+                <small>Platz 1/2/3 erhalten Turnierpunkte (ab 8 Spielern)</small>
+              </div>
+            </label>
+            <label class="option-check" id="optTrostWrap">
+              <input type="checkbox" id="optTrost"/>
+              <span class="checkmark"></span>
+              <div>
+                <strong>Mit Trostrunde</strong>
+                <small>Verlierer spielen in einem zweiten Bracket weiter</small>
+              </div>
+            </label>
+          </div>
+          <div class="turnier-info" id="createInfo">Mindestens 2 Spieler auswählen.</div>
+          <div class="turnier-players-grid" id="turnierPlayersCreate"></div>
+          <div id="prizesPreview" style="display:none" class="prizes-preview"></div>
+          <button class="btn-primary" id="btnStartTurnier">TURNIER STARTEN</button>
+          <div class="toast" id="toastCreate"></div>
+        </div>
+      </div>
+
+      <div id="viewAnsicht" style="display:none">
+        <div class="view-header">
+          <button class="btn-back" id="btnBackListe2">← Alle Turniere</button>
+          <div>
+            <div id="ansichtName" class="turnier-view-name"></div>
+            <div id="ansichtMeta" class="turnier-view-meta"></div>
+          </div>
+          <button class="btn-danger" id="btnResetTurnier">Abbrechen</button>
+        </div>
+
+        <div class="bracket-phase-tabs" id="phaseTabs" style="display:none">
+          <button class="bracket-tab active" data-btab="haupt">🏆 Hauptrunde</button>
+          <button class="bracket-tab" data-btab="trost" id="trostTabBtn" style="display:none">💪 Trostrunde</button>
+        </div>
+
+        <div id="uiGruppen" style="display:none">
+          <div class="section-title" style="margin-top:16px"><span class="sect-icon">👥</span> GRUPPENPHASE</div>
+          <div class="gruppen-tabs" id="gruppenTabs"></div>
+          <div id="gruppenInhalt"></div>
+          <div class="turnier-match-box" id="gruppenMatchBox" style="display:none">
+            <div class="match-box-title">⚡ Gruppenspiel</div>
+            <div class="match-form">
+              <div class="player-select-wrap">
+                <div class="player-card" id="gCardA"><div class="card-label" style="color:var(--accent)">🏓 SPIELER A</div><div class="player-elo" id="gNameA">—</div><input type="number" id="gScoreA" class="score-input" placeholder="0" min="0" max="999"/></div>
+                <div class="vs-badge">VS</div>
+                <div class="player-card" id="gCardB"><div class="card-label" style="color:var(--text2)">🏓 SPIELER B</div><div class="player-elo" id="gNameB">—</div><input type="number" id="gScoreB" class="score-input" placeholder="0" min="0" max="999"/></div>
+              </div>
+              <button class="btn-primary" id="btnSubmitGruppe">EINTRAGEN</button>
+            </div>
+            <div class="toast" id="toastGruppe"></div>
+          </div>
+          <div id="gruppenAbschlussWrap" style="display:none;text-align:center;margin-top:24px">
+            <div class="turnier-info" id="gruppenAbschlussInfo"></div>
+            <button class="btn-primary" id="btnGruppenAbschliessen" style="margin-top:12px">GRUPPENPHASE ABSCHLIESSEN →</button>
+          </div>
+        </div>
+
+        <div id="uiHaupt">
+          <div class="turnier-status-bar">
+            <span id="hauptStatus" class="turnier-status"></span>
+          </div>
+          <div class="bracket-wrap" id="bracketHaupt"></div>
+          <div class="turnier-match-box" id="hauptMatchBox" style="display:none">
+            <div class="match-box-title">⚡ Nächstes Spiel</div>
+            <div class="match-form">
+              <div class="player-select-wrap">
+                <div class="player-card" id="hCardA"><div class="card-label" style="color:var(--accent)">🏓 SPIELER A</div><div class="player-elo" id="hNameA">—</div><input type="number" id="hScoreA" class="score-input" placeholder="0" min="0" max="999"/></div>
+                <div class="vs-badge">VS</div>
+                <div class="player-card" id="hCardB"><div class="card-label" style="color:var(--text2)">🏓 SPIELER B</div><div class="player-elo" id="hNameB">—</div><input type="number" id="hScoreB" class="score-input" placeholder="0" min="0" max="999"/></div>
+              </div>
+              <button class="btn-primary" id="btnSubmitHaupt">EINTRAGEN</button>
+            </div>
+            <div class="toast" id="toastHaupt"></div>
+          </div>
+          <div class="champion-display" id="championDisplay" style="display:none">
+            <div class="champion-crown">👑</div>
+            <div class="champion-title">TURNIERSIEGER</div>
+            <div class="champion-name" id="championName"></div>
+            <div class="podium" id="podium"></div>
+          </div>
+        </div>
+
+        <div id="uiTrost" style="display:none">
+          <div class="bracket-wrap" id="bracketTrost"></div>
+          <div class="turnier-match-box" id="trostMatchBox" style="display:none">
+            <div class="match-box-title">💪 Trostrunden-Spiel</div>
+            <div class="match-form">
+              <div class="player-select-wrap">
+                <div class="player-card" id="trCardA"><div class="card-label" style="color:var(--accent)">🏓 SPIELER A</div><div class="player-elo" id="trNameA">—</div><input type="number" id="trScoreA" class="score-input" placeholder="0" min="0" max="999"/></div>
+                <div class="vs-badge">VS</div>
+                <div class="player-card" id="trCardB"><div class="card-label" style="color:var(--text2)">🏓 SPIELER B</div><div class="player-elo" id="trNameB">—</div><input type="number" id="trScoreB" class="score-input" placeholder="0" min="0" max="999"/></div>
+              </div>
+              <button class="btn-primary" id="btnSubmitTrost">EINTRAGEN</button>
+            </div>
+            <div class="toast" id="toastTrost"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Settings Drawer Overlay -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+
+  <!-- Settings Drawer -->
+  <aside class="settings-drawer" id="settingsDrawer">
+    <div class="drawer-header">
+      <span class="drawer-title">⚙️ EINSTELLUNGEN</span>
+      <button class="close-btn" id="btnCloseDrawer">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-section">
+        <div class="drawer-section-title">📱 APP INSTALLIEREN</div>
+        <div id="installAppHint" class="drawer-install-hint">Lade unten ⬇️</div>
+        <button class="drawer-item" id="btnInstallApp" style="display:none">📲 Als App auf diesem Gerät installieren</button>
+        <p class="drawer-install-sub" id="installAppSub"></p>
+      </div>
+
+      <div class="drawer-section">
+        <div class="drawer-section-title">🔑 ADMIN</div>
+        <button class="drawer-item" id="btnChangeAdminPin">Admin-PIN ändern</button>
+        <div class="toast" id="settingsToast" style="margin-top:8px"></div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-title">📋 RECHTLICHES</div>
+        <button class="drawer-item" onclick="showDatenschutz()">Datenschutzhinweis</button>
+        <button class="drawer-item" onclick="showNutzung()">Nutzungsregeln</button>
+      </div>
+      <div class="drawer-section" style="margin-top:auto;padding-top:20px;border-top:1px solid var(--border)">
+        <p style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);line-height:1.6">
+          🏓 Tischtennis ELO Tracker<br>
+          
+          - Alle Daten werden online gespeichert.
+          <br>
+          - Alle Daten sind für alle Nutzer in Echtzeit sichtbar
+          <br>
+          - Kein Login
+          
+        </p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Modal -->
+  <div class="overlay" id="pinModal">
+    <div class="detail-card" style="max-width:400px">
+      <button class="close-btn" id="closePinModal">✕</button>
+      <div id="pinModalContent"></div>
+    </div>
+  </div>
+
+  <!-- Lade-Overlay (verschwindet sobald Firebase Daten geladen hat) -->
+  <div id="loadingOverlay" style="
+    position:fixed;inset:0;background:#0d1117;z-index:9999;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+    <div style="font-size:3rem">🏓</div>
+    <div style="font-family:'DM Mono',monospace;color:#b5f23e;font-size:.9rem;letter-spacing:.15em">VERBINDE MIT SERVER …</div>
+    <div style="width:120px;height:4px;background:#1a1a2e;border-radius:2px;overflow:hidden">
+      <div style="width:40%;height:100%;background:#b5f23e;border-radius:2px;animation:loadbar 1.2s ease-in-out infinite"></div>
+    </div>
+    <style>@keyframes loadbar{0%{transform:translateX(-100%)}50%{transform:translateX(150%)}100%{transform:translateX(400%)}}</style>
+  </div>
+
+  <script src="app.js"></script>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       FIREBASE KONFIGURATION
+       Ersetze die Werte unten mit deinen eigenen Firebase-Daten!
+       Anleitung: Schritt-für-Schritt Dokument
+  ════════════════════════════════════════════════════════════════ -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAHHBRR-OAr3rQ6DFHW2kDmpnXRO592Kw4",
+        authDomain: "tt-rangliste.firebaseapp.com",
+        databaseURL: "https://tt-rangliste-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "tt-rangliste",
+        storageBucket: "tt-rangliste.firebasestorage.app",
+        messagingSenderId: "713689831079",
+        appId: "1:713689831079:web:2bdc7adf52eed2b11c2d82"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    initFirebase(database);
+
+    function showDatenschutz() {
+      document.getElementById("pinModalContent").innerHTML = `
+        <div class="pin-modal-title">📋 Datenschutzhinweis</div>
+        <div class="pin-modal-sub" style="line-height:1.8">
+          Spielstände und Rangliste werden in Firebase (Google) gespeichert und sind für alle Nutzer sichtbar.<br><br>
+          Passwörter werden als SHA-256 Hash gespeichert – der Originalcode ist für niemanden lesbar.<br><br>
+          Es werden keine personenbezogenen Daten außer dem selbst gewählten Spielernamen gespeichert.
+        </div>`;
+      document.getElementById("pinModal").classList.add("open");
+    }
+    function showNutzung() {
+      document.getElementById("pinModalContent").innerHTML = `
+        <div class="pin-modal-title">📋 Nutzungsregeln</div>
+        <div class="pin-modal-sub" style="line-height:1.8">
+          1. Jeder Spieler meldet sich mit seinem Schulpasswort an.<br><br>
+          2. Beim Eintragen eines Spiels müssen beide Spieler ihren Code bestätigen.<br><br>
+          3. Das Erstellen falscher Spielergebnisse ist nicht erlaubt.<br><br>
+          4. Spieler löschen und Passwort zurücksetzen ist nur mit dem Admin-PIN möglich.<br><br>
+          5. Alle Daten sind für alle Nutzer in Echtzeit sichtbar.
+        </div>`;
+      document.getElementById("pinModal").classList.add("open");
+    }
+  </script>
+</body>
+</html>
